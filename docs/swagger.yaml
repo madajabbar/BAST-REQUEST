@@ -1,0 +1,980 @@
+basePath: /api
+definitions:
+  bast-request_internal_models.AuditLog:
+    properties:
+      action:
+        description: POST, PUT, DELETE, PATCH
+        type: string
+      auditLogID:
+        type: string
+      createdAt:
+        type: string
+      newData:
+        items:
+          type: integer
+        type: array
+      oldData:
+        items:
+          type: integer
+        type: array
+      performedBy:
+        type: string
+      recordID:
+        type: string
+      targetTable:
+        type: string
+    type: object
+  bast-request_internal_models.BastFormat:
+    properties:
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      formatID:
+        type: string
+      formatName:
+        type: string
+      formatPattern:
+        description: e.g. BAST/{YYYY}/{MM}/{SEQ}
+        type: string
+      formatType:
+        description: PO, Internal
+        type: string
+      isActive:
+        type: boolean
+      updatedAt:
+        type: string
+    type: object
+  bast-request_internal_models.BastRequest:
+    properties:
+      bastNumber:
+        type: string
+      bastRequestID:
+        type: string
+      customer:
+        $ref: '#/definitions/bast-request_internal_models.Customer'
+      customerID:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      format:
+        $ref: '#/definitions/bast-request_internal_models.BastFormat'
+      formatID:
+        type: string
+      perihal:
+        type: string
+      poNumber:
+        type: string
+      project:
+        $ref: '#/definitions/bast-request_internal_models.Project'
+      projectID:
+        type: string
+      requestedAt:
+        type: string
+      requestedBy:
+        type: string
+      status:
+        description: Active, Used, Void
+        type: string
+      tipeNomor:
+        description: PO, Internal
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  bast-request_internal_models.BastSequence:
+    properties:
+      createdAt:
+        type: string
+      format:
+        $ref: '#/definitions/bast-request_internal_models.BastFormat'
+      formatID:
+        type: string
+      lastNumber:
+        type: integer
+      month:
+        type: integer
+      sequenceID:
+        type: string
+      updatedAt:
+        type: string
+      year:
+        type: integer
+    type: object
+  bast-request_internal_models.Customer:
+    properties:
+      createdAt:
+        type: string
+      customerCode:
+        type: string
+      customerID:
+        type: string
+      customerName:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      status:
+        description: active, inactive
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  bast-request_internal_models.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  bast-request_internal_models.Project:
+    properties:
+      createdAt:
+        type: string
+      customer:
+        $ref: '#/definitions/bast-request_internal_models.Customer'
+      customerID:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      projectCode:
+        type: string
+      projectID:
+        type: string
+      projectName:
+        type: string
+      status:
+        description: active, inactive
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  bast-request_internal_models.RegisterRequest:
+    properties:
+      email:
+        type: string
+      password:
+        minLength: 6
+        type: string
+      role:
+        type: string
+      username:
+        type: string
+    required:
+    - email
+    - password
+    - role
+    - username
+    type: object
+  gorm.DeletedAt:
+    properties:
+      time:
+        type: string
+      valid:
+        description: Valid is true if Time is not NULL
+        type: boolean
+    type: object
+  internal_handlers.ResetSequenceRequest:
+    properties:
+      format_id:
+        type: string
+      last_number:
+        type: integer
+      month:
+        type: integer
+      year:
+        type: integer
+    required:
+    - format_id
+    - last_number
+    - month
+    - year
+    type: object
+  internal_handlers.UpdateStatusInput:
+    properties:
+      status:
+        type: string
+    required:
+    - status
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: This is the API server for BAST Request System.
+  title: BAST Request API
+  version: "1.0"
+paths:
+  /audit-logs:
+    get:
+      description: Retrieve a list of audit logs, optionally filtered by parameters
+      parameters:
+      - description: Table Name filter
+        in: query
+        name: table_name
+        type: string
+      - description: Record ID filter
+        in: query
+        name: record_id
+        type: string
+      - description: Performed By filter
+        in: query
+        name: performed_by
+        type: string
+      - description: Date From filter (YYYY-MM-DD)
+        in: query
+        name: date_from
+        type: string
+      - description: Date To filter (YYYY-MM-DD)
+        in: query
+        name: date_to
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/bast-request_internal_models.AuditLog'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get all audit logs
+      tags:
+      - audit-logs
+  /audit-logs/{id}:
+    get:
+      description: Retrieve a single audit log based on its ID
+      parameters:
+      - description: Audit Log ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/bast-request_internal_models.AuditLog'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get an audit log by ID
+      tags:
+      - audit-logs
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Login user to get JWT token
+      parameters:
+      - description: Login Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/bast-request_internal_models.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Login user
+      tags:
+      - Auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user with username, email, password, and role
+      parameters:
+      - description: Register Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/bast-request_internal_models.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Register a new user
+      tags:
+      - Auth
+  /bast-formats:
+    get:
+      description: Retrieve a list of all BAST formats
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/bast-request_internal_models.BastFormat'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get all BAST formats
+      tags:
+      - bast-formats
+    post:
+      consumes:
+      - application/json
+      description: Add a new BAST format to the master data
+      parameters:
+      - description: Format Data
+        in: body
+        name: format
+        required: true
+        schema:
+          $ref: '#/definitions/bast-request_internal_models.BastFormat'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/bast-request_internal_models.BastFormat'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Create a new BAST format
+      tags:
+      - bast-formats
+  /bast-formats/{id}:
+    delete:
+      description: Nonaktifkan BAST format based on ID
+      parameters:
+      - description: Format ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Delete a BAST format
+      tags:
+      - bast-formats
+    get:
+      description: Retrieve a single BAST format based on its ID
+      parameters:
+      - description: Format ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/bast-request_internal_models.BastFormat'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get a BAST format by ID
+      tags:
+      - bast-formats
+    put:
+      consumes:
+      - application/json
+      description: Update data for a specific BAST format
+      parameters:
+      - description: Format ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Format Data
+        in: body
+        name: format
+        required: true
+        schema:
+          $ref: '#/definitions/bast-request_internal_models.BastFormat'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/bast-request_internal_models.BastFormat'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Update an existing BAST format
+      tags:
+      - bast-formats
+  /bast-requests:
+    get:
+      description: Retrieve a list of BAST requests, optionally filtered by customer_id,
+        project_id, and status
+      parameters:
+      - description: Customer ID filter
+        in: query
+        name: customer_id
+        type: string
+      - description: Project ID filter
+        in: query
+        name: project_id
+        type: string
+      - description: Status filter
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/bast-request_internal_models.BastRequest'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get all BAST requests
+      tags:
+      - bast-requests
+    post:
+      consumes:
+      - application/json
+      description: Submit a new BAST request and automatically generate running number
+        or use PO number
+      parameters:
+      - description: Request Data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/bast-request_internal_models.BastRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/bast-request_internal_models.BastRequest'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Create a new BAST request
+      tags:
+      - bast-requests
+  /bast-requests/{id}:
+    get:
+      description: Retrieve a single BAST request based on its ID
+      parameters:
+      - description: Request ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/bast-request_internal_models.BastRequest'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get a BAST request by ID
+      tags:
+      - bast-requests
+  /bast-requests/{id}/audit:
+    get:
+      description: Retrieve the history of changes for a specific request ID
+      parameters:
+      - description: Request ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get audit log for a request
+      tags:
+      - bast-requests
+  /bast-requests/{id}/status:
+    patch:
+      consumes:
+      - application/json
+      description: Update the status of a specific BAST request (Active, Used, Void)
+      parameters:
+      - description: Request ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Status Data
+        in: body
+        name: status
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handlers.UpdateStatusInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Update request status
+      tags:
+      - bast-requests
+  /bast-sequences:
+    get:
+      description: Retrieve the current running sequence for a specific BAST format,
+        year, and month
+      parameters:
+      - description: Format ID
+        in: query
+        name: format_id
+        required: true
+        type: string
+      - description: Year
+        in: query
+        name: year
+        required: true
+        type: integer
+      - description: Month
+        in: query
+        name: month
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/bast-request_internal_models.BastSequence'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get running sequence
+      tags:
+      - bast-sequences
+  /bast-sequences/reset:
+    post:
+      consumes:
+      - application/json
+      description: Override or reset the running sequence for a specific BAST format
+      parameters:
+      - description: Reset Sequence Data
+        in: body
+        name: sequence
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handlers.ResetSequenceRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/bast-request_internal_models.BastSequence'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Reset running sequence
+      tags:
+      - bast-sequences
+  /customers:
+    get:
+      description: Retrieve a list of customers, optionally filtered by status and
+        name
+      parameters:
+      - description: Status filter
+        in: query
+        name: status
+        type: string
+      - description: Name filter
+        in: query
+        name: nama
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/bast-request_internal_models.Customer'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get all customers
+      tags:
+      - customers
+    post:
+      consumes:
+      - application/json
+      description: Add a new customer to the master data
+      parameters:
+      - description: Customer Data
+        in: body
+        name: customer
+        required: true
+        schema:
+          $ref: '#/definitions/bast-request_internal_models.Customer'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/bast-request_internal_models.Customer'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Create a new customer
+      tags:
+      - customers
+  /customers/{id}:
+    delete:
+      description: Nonaktifkan customer based on ID (soft delete / status inactive)
+      parameters:
+      - description: Customer ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Delete a customer
+      tags:
+      - customers
+    get:
+      description: Retrieve a single customer based on their ID
+      parameters:
+      - description: Customer ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/bast-request_internal_models.Customer'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get a customer by ID
+      tags:
+      - customers
+    put:
+      consumes:
+      - application/json
+      description: Update data for a specific customer
+      parameters:
+      - description: Customer ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Customer Data
+        in: body
+        name: customer
+        required: true
+        schema:
+          $ref: '#/definitions/bast-request_internal_models.Customer'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/bast-request_internal_models.Customer'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Update an existing customer
+      tags:
+      - customers
+  /projects:
+    get:
+      description: Retrieve a list of projects, optionally filtered by customer ID
+      parameters:
+      - description: Customer ID filter
+        in: query
+        name: customer_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/bast-request_internal_models.Project'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get all projects
+      tags:
+      - projects
+    post:
+      consumes:
+      - application/json
+      description: Add a new project to the master data
+      parameters:
+      - description: Project Data
+        in: body
+        name: project
+        required: true
+        schema:
+          $ref: '#/definitions/bast-request_internal_models.Project'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/bast-request_internal_models.Project'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Create a new project
+      tags:
+      - projects
+  /projects/{id}:
+    delete:
+      description: Nonaktifkan project based on ID
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Delete a project
+      tags:
+      - projects
+    get:
+      description: Retrieve a single project based on its ID
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/bast-request_internal_models.Project'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get a project by ID
+      tags:
+      - projects
+    put:
+      consumes:
+      - application/json
+      description: Update data for a specific project
+      parameters:
+      - description: Project ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Project Data
+        in: body
+        name: project
+        required: true
+        schema:
+          $ref: '#/definitions/bast-request_internal_models.Project'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/bast-request_internal_models.Project'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Update an existing project
+      tags:
+      - projects
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
