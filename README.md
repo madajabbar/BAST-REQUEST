@@ -30,7 +30,7 @@ Proyek ini disusun dengan batas *layer* yang sangat ketat:
 .
 ├── cmd/
 │   └── api/main.go          # Pintu masuk (Entry point) aplikasi.
-├── docs/                    # Direktori dokumentasi (Swagger & Manual teknis).
+├── docs/                    # Dokumentasi (Swagger + Panduan & Tutorial).
 ├── internal/
 │   ├── config/              # Konfigurasi Database (GORM, Migrasi, Seed).
 │   ├── handlers/            # Layer Terluar: Menerima HTTP Request, Parsing JSON (Gin).
@@ -84,12 +84,37 @@ Saat server menyala, buka *browser* Anda dan kunjungi:
 
 ## 📖 Belajar & Panduan Lebih Dalam
 
-Khusus untuk Anda yang ingin membedah kode ini atau baru belajar Golang, silakan baca dokumentasi interaktif super-lengkap yang telah disediakan di dalam folder `docs/`:
+Khusus untuk Anda yang ingin membedah kode ini atau baru belajar Golang, silakan buka **pusat dokumentasi** di folder [`docs/`](docs/README.md):
 
-1. **[Learning Roadmap Backend Go](docs/learning_roadmap.md):** Apa saja yang harus Anda pelajari dari nol.
-2. **[Arsitektur & Aturan Dasar](docs/technical_guide.md):** Skema Database (ERD) dan penjelasan konsep `Struct/Pointer` secara mendalam.
-3. **[Tutorial Step-by-Step Pembuatan Aplikasi](docs/step_1_setup_and_config.md):** Seri membedah baris kode aplikasi ini langkah-demi-langkah dari *Database* hingga menjadi *Swagger*. 
-4. **[Tutorial Menambahkan Fitur Baru](docs/step_by_step_tutorial.md):** Praktek dari Model -> Handler.
+> 📂 **[`docs/README.md`](docs/README.md)** — Peta navigasi lengkap semua dokumen.
+
+### Mulai dari sini (Pemula)
+- 🚀 [**Gambaran Umum Aplikasi**](docs/getting-started/overview.md) — fitur, teknologi, alur kerja.
+- 🚀 [**Panduan Instalasi**](docs/getting-started/installation.md) — setup, run, smoke test.
+
+### Pahami Fondasi
+- 🏗️ [**Clean Architecture**](docs/architecture/clean-architecture.md) — pola 4-layer + analogi restoran.
+- 🗄️ [**Skema Database & ERD**](docs/architecture/database-schema-erd.md) — diagram Mermaid + penjelasan tabel.
+- 🎓 [**Fondasi Golang**](docs/architecture/golang-fundamentals.md) — struct, pointer, error handling.
+
+### Membedah Kode (Tutorial Step-by-Step)
+1. [**Step 1: Setup & Konfigurasi**](docs/tutorials/step-01-setup-and-config.md)
+2. [**Step 2: Models & Migrasi**](docs/tutorials/step-02-models-and-migration.md)
+3. [**Step 3: Autentikasi JWT**](docs/tutorials/step-03-authentication-jwt.md)
+4. [**Step 4: Master Data CRUD**](docs/tutorials/step-04-master-data-crud.md)
+5. [**Step 5: Mesin Penomoran BAST**](docs/tutorials/step-05-bast-numbering-engine.md)
+6. [**Step 6: Audit Log**](docs/tutorials/step-06-audit-log.md)
+7. [**Step 7: Routing & RBAC**](docs/tutorials/step-07-routing-and-rbac.md)
+8. [**Step 8: Dokumentasi Swagger**](docs/tutorials/step-08-swagger-documentation.md)
+
+### Panduan Topik Spesifik
+- 🔐 [**Autentikasi & RBAC End-to-End**](docs/guides/authentication-guide.md)
+- 🤿 [**Deep Dive Penomoran BAST**](docs/guides/bast-numbering-deep-dive.md) — race condition, locking, reset.
+- 🛠️ [**Menambahkan Fitur Baru**](docs/guides/add-new-feature-guide.md) — contoh modul Division.
+- 📘 [**Panduan Swagger**](docs/guides/swagger-guide.md) — regenerasi & troubleshooting.
+
+### Referensi API per Endpoint
+- 🔌 [**Daftar Lengkap Endpoint**](docs/api-reference/README.md) — method, parameter, contoh request/response.
 
 ---
 
